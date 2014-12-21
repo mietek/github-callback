@@ -79,7 +79,10 @@ handleCallback :: (Given Cfg) => S.ActionM ()
 handleCallback = do
     mstate <- maybeParam "state"
     mcode  <- maybeParam "code"
-    let base    = [("state" :: Text, ) <$> mstate]
+    let base =
+          [ ("state" :: Text, ) <$> mstate
+          , Just ("vendor", "github")
+          ]
         go more = redirect $ addQuery (base ++ more) $ targetUrl given
     case mcode of
       Nothing   -> go [Just ("error", "no_code")]

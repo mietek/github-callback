@@ -15,12 +15,15 @@ On failure, the user is also redirected to the target URL, with an `error` param
 
 The `state` parameter is included both on success and on failure, if it was supplied with the authorization code request.
 
+To help distinguish requests made to the target URL, `vendor=github` is always included.
+
 | Query parameter | Description
 | :-------------- | :----------
 | `access_token`  | Access token.  Included on success.
 | `scope`         | Comma-separated list of scopes.  Included on success.
 | `error`         | Either `no_code` or `no_token`.  Included on failure.
 | `state`         | Arbitrary string.  Optional.
+| `vendor`        | Always `github`.
 
 
 ### Configuration
