@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections #-}
@@ -53,10 +52,10 @@ addQuery query url
 
 
 data Cfg = Cfg
-    { clientId     :: Text
-    , clientSecret :: Text
-    , callbackUrl  :: Text
-    , targetUrl    :: Text
+    { cfgClientId     :: Text
+    , cfgClientSecret :: Text
+    , cfgCallbackUrl  :: Text
+    , cfgTargetUrl    :: Text
     }
   deriving (Show)
 
@@ -64,9 +63,9 @@ data Cfg = Cfg
 postAccessTokenReq :: (Given Cfg) => Text -> IO (Maybe Text, Maybe Text)
 postAccessTokenReq code = do
     let opts = C.defaults
-          & C.param "client_id"     .~ [clientId given]
-          & C.param "client_secret" .~ [clientSecret given]
-          & C.param "redirect_uri"  .~ [callbackUrl given]
+          & C.param "client_id"     .~ [cfgClientId given]
+          & C.param "client_secret" .~ [cfgClientSecret given]
+          & C.param "redirect_uri"  .~ [cfgCallbackUrl given]
           & C.param "code"          .~ [code]
           & C.header "Accept"       .~ ["application/json"]
     resp <- C.postWith opts "https://github.com/login/oauth/access_token" BS.empty
@@ -83,7 +82,7 @@ handleCallback = do
           [ ("state" :: Text, ) <$> mstate
           , Just ("vendor", "github")
           ]
-        go more = redirect $ addQuery (base ++ more) $ targetUrl given
+        go more = redirect $ addQuery (base ++ more) $ cfgTargetUrl given
     case mcode of
       Nothing   -> go [Just ("error", "no_code")]
       Just code -> do
@@ -98,17 +97,17 @@ handleCallback = do
 
 main :: IO ()
 main = do
-    clientId     <- T.pack <$> getEnv "GITHUB_CLIENT_ID"
-    clientSecret <- T.pack <$> getEnv "GITHUB_CLIENT_SECRET"
-    callbackUrl  <- T.pack <$> getEnv "CALLBACK_URL"
-    targetUrl    <- T.pack <$> getEnv "TARGET_URL"
+    clientId     <- getEnv "GITHUB_CLIENT_ID"
+    clientSecret <- getEnv "GITHUB_CLIENT_SECRET"
+    callbackUrl  <- getEnv "CALLBACK_URL"
+    targetUrl    <- getEnv "TARGET_URL"
     env          <- getEnvironment
     let port = maybe 8080 read $ lookup "PORT" env
         cfg  = Cfg
-          { clientId
-          , clientSecret
-          , callbackUrl
-          , targetUrl
+          { cfgClientId     = T.pack clientId
+          , cfgClientSecret = T.pack clientSecret
+          , cfgCallbackUrl  = T.pack callbackUrl
+          , cfgTargetUrl    = T.pack targetUrl
           }
     give cfg $ scotty port $ do
       S.middleware logStdout
