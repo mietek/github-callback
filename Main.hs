@@ -6,9 +6,12 @@ import Control.Applicative ((<$>))
 import Control.Lens ((&), (^?), (.~))
 import Control.Monad.IO.Class (liftIO)
 import Data.Aeson.Lens (_String, key)
+import Data.Maybe (fromJust)
 import Data.Reflection (Given, give, given)
+import Data.String (fromString)
 import Data.Text (Text)
 import Network.Wai.Middleware.RequestLogger (logStdout)
+import Network.URI (parseURI, uriPath)
 import System.Environment (getEnv, getEnvironment)
 import Web.Scotty (scotty)
 
@@ -101,6 +104,7 @@ main = do
     targetUrl    <- getEnv "TARGET_URL"
     env          <- getEnvironment
     let port = maybe 8080 read $ lookup "PORT" env
+        path = fromString $ uriPath $ fromJust $ parseURI callbackUrl
         cfg  = Cfg
           { cfgClientId     = T.pack clientId
           , cfgClientSecret = T.pack clientSecret
@@ -109,5 +113,5 @@ main = do
           }
     give cfg $ scotty port $ do
       S.middleware logStdout
-      S.get        "/callback" handleCallback
+      S.get        path handleCallback
       S.notFound   rejectBadRequest

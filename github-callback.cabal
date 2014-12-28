@@ -23,6 +23,7 @@ executable github-callback
                       http-types < 0.9,
                       lens < 4.7,
                       lens-aeson < 1.1,
+                      network-uri < 2.7,
                       reflection < 1.6,
                       scotty < 0.10,
                       text < 1.3,

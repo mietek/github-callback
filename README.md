@@ -7,7 +7,7 @@ _github-callback_
 Usage
 -----
 
-Listens for HTTP `GET` requests at `/callback`.  All requests are forwarded to the GitHub [`/login/oauth/access_token`](https://developer.github.com/v3/oauth/#github-redirects-back-to-your-site) endpoint.
+Listens for HTTP `GET` requests.  All requests are forwarded to the GitHub [`/login/oauth/access_token`](https://developer.github.com/v3/oauth/#github-redirects-back-to-your-site) endpoint.
 
 If an incoming request includes an authorization code, the helper requests an access token.  If an access token is granted, the helper redirects the user to the target URL, with additional `access_token` and `scope` parameters.
 
@@ -34,7 +34,7 @@ Authentication credentials and defaults can be configured by setting environment
 | :--------------------------- | :----------
 | `GITHUB_CLIENT_ID`           | Application identifier.  Required.
 | `GITHUB_CLIENT_SECRET`       | Authentication token.  Required.
-| `CALLBACK_URL`               | Helper’s own URL, including `/callback`.  Required.
+| `CALLBACK_URL`               | Helper’s own URL.  Required.
 | `TARGET_URL`                 | URL to which the user is redirected.  Required.
 | `PORT`                       | HTTP listening port.  Defaults to `8080`.
 
