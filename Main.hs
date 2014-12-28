@@ -2,6 +2,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
 
+import Paths_github_callback (getDataFileName)
+
 import Control.Applicative ((<$>))
 import Control.Lens ((&), (^?), (.~))
 import Control.Monad.IO.Class (liftIO)
@@ -12,8 +14,8 @@ import Data.String (fromString)
 import Data.Text (Text)
 import Network.Wai.Middleware.RequestLogger (logStdout)
 import Network.URI (parseURI, uriPath)
+import System.Directory (doesFileExist)
 import System.Environment (getEnv, getEnvironment)
-import Web.Scotty (scotty)
 
 import qualified Data.ByteString as BS
 import qualified Data.Text as T
@@ -22,6 +24,7 @@ import qualified Data.Text.Lazy as LT
 import qualified Network.HTTP.Types as H
 import qualified Network.Wreq as C
 import qualified Web.Scotty as S
+import qualified Web.Scotty.TLS as S
 
 
 redirect :: Text -> S.ActionM ()
@@ -111,7 +114,14 @@ main = do
           , cfgCallbackUrl  = T.pack callbackUrl
           , cfgTargetUrl    = T.pack targetUrl
           }
-    give cfg $ scotty port $ do
+    keyFile <- getDataFileName "server.key"
+    crtFile <- getDataFileName "server.crt"
+    hasKey  <- doesFileExist keyFile
+    hasCrt  <- doesFileExist crtFile
+    let scotty = if hasKey && hasCrt
+                   then S.scottyTLS port keyFile crtFile
+                   else S.scotty port
+    give cfg $ scotty $ do
       S.middleware logStdout
       S.get        path handleCallback
       S.notFound   rejectBadRequest
