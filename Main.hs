@@ -8,6 +8,7 @@ import Control.Applicative ((<$>))
 import Control.Lens ((&), (^?), (.~))
 import Control.Monad.IO.Class (liftIO)
 import Data.Aeson.Lens (_String, key)
+import Data.ByteString (ByteString)
 import Data.Maybe (fromJust)
 import Data.Reflection (Given, give, given)
 import Data.String (fromString)
@@ -18,18 +19,20 @@ import System.Directory (doesFileExist)
 import System.Environment (getEnv, getEnvironment)
 
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as LBS
+import qualified Data.ByteString.Char8 as BSC
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy as LT
+import qualified Data.Text.Lazy.Encoding as LT
 import qualified Network.HTTP.Types as H
 import qualified Network.Wreq as C
 import qualified Web.Scotty as S
 import qualified Web.Scotty.TLS as S
 
 
-redirect :: Text -> S.ActionM ()
+redirect :: ByteString -> S.ActionM ()
 redirect url = do
-    S.redirect $ LT.fromStrict url
+    S.redirect $ LT.decodeUtf8 $ LBS.fromStrict url
 
 
 rejectBadRequest :: S.ActionM ()
@@ -44,22 +47,22 @@ maybeParam name =
       return Nothing
 
 
-addQuery :: (H.QueryLike a) => a -> Text -> Text
+addQuery :: (H.QueryLike a) => a -> ByteString -> ByteString
 addQuery query url
-    | BS.length str > 0 = T.decodeUtf8 $ BS.concat [T.encodeUtf8 url, sep, str]
+    | BS.length str > 0 = BS.concat [url, sep, str]
     | otherwise         = url
   where
     str = H.renderQuery False $ H.toQuery query
-    sep = case T.findIndex (== '?') url of
-            Just _  -> "&"
-            Nothing -> "?"
+    sep = if BSC.elem '?' url
+            then "&"
+            else "?"
 
 
 data Cfg = Cfg
     { cfgClientId     :: Text
     , cfgClientSecret :: Text
     , cfgCallbackUrl  :: Text
-    , cfgTargetUrl    :: Text
+    , cfgTargetUrl    :: ByteString
     }
   deriving (Show)
 
@@ -112,7 +115,7 @@ main = do
           { cfgClientId     = T.pack clientId
           , cfgClientSecret = T.pack clientSecret
           , cfgCallbackUrl  = T.pack callbackUrl
-          , cfgTargetUrl    = T.pack targetUrl
+          , cfgTargetUrl    = BSC.pack targetUrl
           }
     keyFile <- getDataFileName "server.key"
     crtFile <- getDataFileName "server.crt"
