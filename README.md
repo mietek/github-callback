@@ -1,3 +1,10 @@
+-------------------------------------------------------------------------------
+
+This project is no longer maintained.
+
+-------------------------------------------------------------------------------
+
+
 _github-callback_
 =================
 
@@ -80,4 +87,4 @@ $ heroku open
 About
 -----
 
-Made by [Miëtek Bak](https://mietek.io/).  Published under the [MIT X11 license](https://mietek.io/license/).
+Made by [Miëtek Bak](https://mietek.io/).  Published under the BSD license.
